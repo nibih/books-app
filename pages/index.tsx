@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { Container, Stack, Badge } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
+import Navigation from '../Components/Navigation';
 const Categories = () => {
   const [categories, setCategories] = useState([{ id: '', name: '' }]);
   const fetchCategories = async () => {
@@ -22,6 +23,7 @@ const Categories = () => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
+      <Navigation />
       <main
         className='vh-100 d-flex
         align-items-center justify-content-center
@@ -43,9 +45,11 @@ const Categories = () => {
           my-2'
           >
             {categories.map((category, index) => (
-                // encode the category name to be used in the url
+              // encode the category name to be used in the url
               <a
-                href={`/category/${category.id}?category=${encodeURIComponent(category.name)}`}
+                href={`/category/${category.id}?category=${encodeURIComponent(
+                  category.name
+                )}`}
                 key={index}
                 className='mx-1'
               >

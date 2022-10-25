@@ -11,6 +11,7 @@ import {
   Modal,
   Button,
 } from 'react-bootstrap';
+import Navigation from '../../Components/Navigation';
 import Search from '../../Components/Search';
 import { Book } from '../../Components/types';
 const Books = () => {
@@ -27,6 +28,25 @@ const Books = () => {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  const [favBooks, setFavBooks] = useState<Array<Book>>(Array<Book>);
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    // setfavorites from local storage
+    const favorites = localStorage.getItem('favorites');
+    if (favorites) {
+      setFavBooks(JSON.parse(favorites));
+    }
+  }, [localStorage]);
+
+  // check if book is in favorites
+  useEffect(() => {
+    if (selectedBook) {
+      const isFav = favBooks.some((favBook) => favBook.id === selectedBook.id);
+      setIsFav(isFav);
+    }
+  }, [selectedBook, favBooks]);
 
   if (typeof window !== 'undefined') {
     useEffect(() => {
@@ -68,26 +88,12 @@ const Books = () => {
 
   return (
     <>
-      <Navbar bg='dark' variant='dark' sticky='top'>
-        <Container>
-          <Nav
-            className='
-            d-flex
-            justify-content-between
-            align-items-center
-            w-100
-            py-1
-          '
-          >
-            <Nav.Link href='/'>Home</Nav.Link>
-            <Search booksArray={books} setResultArray={setResultArray} />
-          </Nav>
-        </Container>
-      </Navbar>
+      <Navigation />
       <Container className='my-2'>
         {/* horizontal stack if large */}
         <Container className='my-2'>
           <h1>{category}</h1>
+          <Search booksArray={books} setResultArray={setResultArray} />
           <Form.Select
             size='sm'
             onChange={(e) => {
@@ -144,26 +150,50 @@ const Books = () => {
         </Modal.Header>
         <Modal.Body>
           {/* favorites button */}
-          <Button
-            variant='primary'
-            onClick={
-              // add to local storage if not already there
-              // check by id
-              () => {
-                const favorites = JSON.parse(
-                  localStorage.getItem('favorites') || '[]'
-                );
-                if (
-                  !favorites.some((book: Book) => book.id === selectedBook?.id)
-                ) {
-                  favorites.push(selectedBook);
-                  localStorage.setItem('favorites', JSON.stringify(favorites));
-                }
-              }
-            }
-          >
-            Add to favorites
-          </Button>
+          {
+            /* check if selected book is already in fav */
+            /* if yes, show remove from fav button */
+            /* if no, show add to fav button */
+
+            isFav ? (
+              <Button
+                variant='danger'
+                onClick={() => {
+                  const newFavBooks = favBooks.filter(
+                    (favBook) => favBook.id !== selectedBook?.id
+                  );
+                  setFavBooks(newFavBooks);
+                  localStorage.setItem(
+                    'favorites',
+                    JSON.stringify(newFavBooks)
+                  );
+                  setIsFav(false);
+                }}
+              >
+                Remove from favorites
+              </Button>
+            ) : (
+              <Button
+                variant='success'
+                onClick={() => {
+                  const newFavBooks = [
+                    ...favBooks,
+                    selectedBook || ({} as Book),
+                  ];
+                  if (newFavBooks !== undefined) {
+                    setFavBooks(newFavBooks);
+                    localStorage.setItem(
+                      'favorites',
+                      JSON.stringify(newFavBooks)
+                    );
+                    setIsFav(true);
+                  }
+                }}
+              >
+                Add to favorites
+              </Button>
+            )
+          }
 
           {selectedBook?.sections?.map((section: any, index: number) => (
             <div key={index}>
